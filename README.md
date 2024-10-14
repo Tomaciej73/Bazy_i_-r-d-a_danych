@@ -1,1 +1,3 @@
-# Bazy_i_-r-d-a_danych
+# Bazy i źródła danych 2024    
+Tomasz Karkulowski 163105  
+Prowadzący: **Paweł Drozda**  

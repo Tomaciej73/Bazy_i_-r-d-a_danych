@@ -1,5 +1,4 @@
 import pandas as pd
-from show import *
 from connect import cur
 
 def showCity():
@@ -31,6 +30,10 @@ def showGames():
     result = cur.fetchall()
     df = pd.DataFrame(result, columns=['ID', 'Game Date', 'Home Team ID', 'Away Team ID', 'Home Score', 'Away Score', 'Tournament ID', 'City ID', 'Country ID', 'Neutral'])
     print(df.head(10).to_string(index=False))
+
+def getGoals():
+    cur.execute('SELECT home_score,away_score FROM KARKULOWSKIT.GAME')
+    return cur.fetchall()
 
 if __name__ == "__main__":
     #showTournament()

@@ -69,10 +69,10 @@ def updateGames():
     cur.execute('DELETE FROM KARKULOWSKIT.GAME')
     cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
     #cur.execute('SET FOREIGN_KEY_CHECKS = 1')
-    imp_cities = list(importCity())
-    imp_countries = list(importCountries())
-    imp_teams = list(importTeams())
-    imp_tournaments = list(importTournament())
+    imp_cities = list(showCity())
+    imp_countries = list(showCountries())
+    imp_teams = list(showTeams())
+    imp_tournaments = list(showTournament())
 
     sql = 'INSERT INTO KARKULOWSKIT.GAME(GAME_DATE, HOME_TEAM_ID, AWAY_TEAM_ID, ' \
           'HOME_SCORE, AWAY_SCORE, TOURNAMENT_ID, CITY_ID, COUNTRY_ID, NEUTRAL) ' \
@@ -96,5 +96,3 @@ def updateGames():
             print(f"Błąd w wierszu {index}: {e}")
 
 exec()
-
-

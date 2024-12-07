@@ -1,9 +1,10 @@
+import cx_Oracle
 import pandas as pd
 import string
 from show import *
 from connect import connection, cur
 from check import checkScore, checkDate
-
+import time
 df = pd.read_csv('dane.csv', delimiter=',', encoding="utf_8")
 
 cities = df['city'].unique()
@@ -13,7 +14,7 @@ tournaments = df['tournament'].unique()
 
 
 def exec():
-    #updateCity()
+    updateCity()
     #updateCountry()
     #updateTeams()
     #updateTournaments()
@@ -23,9 +24,17 @@ def exec():
 
 # Wstaw dane z csv do CITY
 def updateCity():
-    cur.execute('DELETE FROM KARKULOWSKIT.CITY') # Usun wszystko z tabeli CITY
-    cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY') # Usun wszystkie wiersze bez odzyskiwania ROLLBACK
-    for city in cities: # wstaw dane z csv z kolumny tournament
+    total_rows = len(cities)
+    try:
+        cur.execute('DELETE FROM KARKULOWSKIT.CITY')  # Usuń wszystko z tabeli CITY
+        cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')  # Bez ROLLBACK
+    except cx_Oracle.IntegrityError as e:
+        if "ORA-02292" in str(e):
+            print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
+            updateGames(delete_only=True)  # Najpierw usuń dane z GAME
+            cur.execute('DELETE FROM KARKULOWSKIT.CITY')
+            cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')
+    for index, city in enumerate(cities):
         tmp = ""
         acc = """ '",{}[].`;: -' ’‘"""
         for x in city:
@@ -33,20 +42,41 @@ def updateCity():
                 tmp += x
         cur.execute('INSERT INTO KARKULOWSKIT.CITY(CITY_NAME) VALUES (:1)', [tmp])
         connection.commit()
-
+        progress = ((index + 1) / total_rows) * 100
+        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+    print("\nDane do tabeli CITY zostały wgrane pomyślnie.")
 # Wstaw dane z csv do COUNTRY
 def updateCountry():
-    cur.execute('DELETE FROM KARKULOWSKIT.COUNTRY')
-    cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')
-    for country in countries:
+    total_rows = len(countries)
+    try:
+        cur.execute('DELETE FROM KARKULOWSKIT.COUNTRY')  # Usuń wszystko z tabeli COUNTRY
+        cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')  # Bez ROLLBACK
+    except cx_Oracle.IntegrityError as e:
+        if "ORA-02292" in str(e):
+            print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
+            updateGames(delete_only=True)  # Najpierw usuń dane z GAME
+            cur.execute('DELETE FROM KARKULOWSKIT.COUNTRY')
+            cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')
+    for index, country in enumerate(countries):
         cur.execute('INSERT INTO KARKULOWSKIT.COUNTRY(COUNTRY_NAME) VALUES (:1)', [country])
         connection.commit()
+        progress = ((index + 1) / total_rows) * 100
+        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+    print("\nDane do tabeli COUNTRY zostały wgrane pomyślnie.")
 
 # Wstaw dane z csv do TEAM
 def updateTeams():
-    cur.execute('DELETE FROM KARKULOWSKIT.TEAM')
-    cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')
-    for team in concat_teams:
+    total_rows = len(concat_teams)
+    try:
+        cur.execute('DELETE FROM KARKULOWSKIT.TEAM')  # Usuń wszystko z tabeli TEAM
+        cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')  # Bez ROLLBACK
+    except cx_Oracle.IntegrityError as e:
+        if "ORA-02292" in str(e):
+            print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
+            updateGames(delete_only=True)  # Najpierw usuń dane z GAME
+            cur.execute('DELETE FROM KARKULOWSKIT.TEAM')
+            cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')
+    for index, team in enumerate(concat_teams):
         tmp = ""
         acc = """ '",{}[].`;: - """
         for x in team:
@@ -54,21 +84,41 @@ def updateTeams():
                 tmp += x
         cur.execute('INSERT INTO KARKULOWSKIT.TEAM(TEAM_NAME) VALUES (:1)', [tmp])
         connection.commit()
+        progress = ((index + 1) / total_rows) * 100
+        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+    print("\nDane do tabeli TEAM zostały wgrane pomyślnie.")
 
 # Wstaw dane z csv do TOURNAMENTS
 def updateTournaments():
-    cur.execute('DELETE FROM KARKULOWSKIT.TOURNAMENT')
-    cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')
-    for tournament in tournaments:
+    total_rows = len(tournaments)
+    try:
+        cur.execute('DELETE FROM KARKULOWSKIT.TOURNAMENT')  # Usuń wszystko z tabeli TEAM
+        cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')  # Bez ROLLBACK
+    except cx_Oracle.IntegrityError as e:
+        if "ORA-02292" in str(e):
+            print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
+            updateGames(delete_only=True)  # Najpierw usuń dane z GAME
+            cur.execute('DELETE FROM KARKULOWSKIT.TOURNAMENT')
+            cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')
+    for index, tournament in enumerate(tournaments):
         cur.execute('INSERT INTO KARKULOWSKIT.TOURNAMENT(TOURNAMENT_NAME) VALUES (:1)', [tournament])
         connection.commit()
+        progress = ((index + 1) / total_rows) * 100
+        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+    print("\nDane do tabeli TOURNAMENT zostały wgrane pomyślnie.")
 
 # Wstaw dane z csv do GAME
-def updateGames():
-    #cur.execute('SET FOREIGN_KEY_CHECKS = 0')
-    cur.execute('DELETE FROM KARKULOWSKIT.GAME')
-    cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
-    #cur.execute('SET FOREIGN_KEY_CHECKS = 1')
+def updateGames(delete_only=False):
+    total_rows = len(df)
+    try:
+        cur.execute('DELETE FROM KARKULOWSKIT.GAME')
+        cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
+        if delete_only:
+            print("Dane z tabeli GAME zostały usunięte.")
+            return
+    except Exception as e:
+        print(f"Błąd podczas usuwania danych z GAME: {e}")
+        return
     imp_cities = list(showCity())
     imp_countries = list(showCountries())
     imp_teams = list(showTeams())
@@ -89,10 +139,12 @@ def updateGames():
                    [item for item in imp_countries if item[1] == row['country']][0][0],
                    row['neutral']
                    )
-            #print(f"Wstawianie wartości: {val}")
             cur.execute(sql, val)
             connection.commit()
+            progress = ((index + 1) / total_rows) * 100
+            print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
         except IndexError as e:
-            print(f"Błąd w wierszu {index}: {e}")
+            print(f"\nBłąd w wierszu {index}: {e}")
+    print("\nDane do tabeli GAME zostały wgrane pomyślnie.")
 
 exec()

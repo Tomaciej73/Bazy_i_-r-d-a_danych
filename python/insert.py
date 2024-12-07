@@ -20,7 +20,6 @@ def exec():
     #updateTournaments()
     updateGames()
 
-
 # Wstaw dane z csv do CITY
 def updateCity():
     total_rows = len(cities)
@@ -42,8 +41,9 @@ def updateCity():
         cur.execute('INSERT INTO KARKULOWSKIT.CITY(CITY_NAME) VALUES (:1)', [tmp])
         connection.commit()
         progress = ((index + 1) / total_rows) * 100
-        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+        print(f"\rPostęp CITY: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
     print("\nDane do tabeli CITY zostały wgrane pomyślnie.")
+
 # Wstaw dane z csv do COUNTRY
 def updateCountry():
     total_rows = len(countries)
@@ -60,7 +60,7 @@ def updateCountry():
         cur.execute('INSERT INTO KARKULOWSKIT.COUNTRY(COUNTRY_NAME) VALUES (:1)', [country])
         connection.commit()
         progress = ((index + 1) / total_rows) * 100
-        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+        print(f"\rPostęp COUNTRY: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
     print("\nDane do tabeli COUNTRY zostały wgrane pomyślnie.")
 
 # Wstaw dane z csv do TEAM
@@ -84,7 +84,7 @@ def updateTeams():
         cur.execute('INSERT INTO KARKULOWSKIT.TEAM(TEAM_NAME) VALUES (:1)', [tmp])
         connection.commit()
         progress = ((index + 1) / total_rows) * 100
-        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+        print(f"\rPostęp TEAM: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
     print("\nDane do tabeli TEAM zostały wgrane pomyślnie.")
 
 # Wstaw dane z csv do TOURNAMENTS
@@ -103,47 +103,63 @@ def updateTournaments():
         cur.execute('INSERT INTO KARKULOWSKIT.TOURNAMENT(TOURNAMENT_NAME) VALUES (:1)', [tournament])
         connection.commit()
         progress = ((index + 1) / total_rows) * 100
-        print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+        print(f"\rPostęp TOURNAMENT: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
     print("\nDane do tabeli TOURNAMENT zostały wgrane pomyślnie.")
+
+def safe_lookup(value, lookup_list, column_index=0):
+    """
+    Bezpieczne wyszukiwanie wartości w liście.
+    Zwraca wynik lub None, jeśli nie znaleziono.
+    """
+    result = [item[column_index] for item in lookup_list if item[1] == value]
+    return result[0] if result else None
+
 
 # Wstaw dane z csv do GAME
 def updateGames(delete_only=False):
     total_rows = len(df)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.GAME')
-        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
         if delete_only:
             print("Dane z tabeli GAME zostały usunięte.")
             return
     except Exception as e:
         print(f"Błąd podczas usuwania danych z GAME: {e}")
         return
-    imp_cities = list(showCity())
-    imp_countries = list(showCountries())
-    imp_teams = list(showTeams())
-    imp_tournaments = list(showTournament())
+
+    imp_cities = showCity()
+    imp_countries = showCountries()
+    imp_teams = showTeams()
+    imp_tournaments = showTournament()
 
     sql = 'INSERT INTO KARKULOWSKIT.GAME(GAME_DATE, HOME_TEAM_ID, AWAY_TEAM_ID, ' \
           'HOME_SCORE, AWAY_SCORE, TOURNAMENT_ID, CITY_ID, COUNTRY_ID, NEUTRAL) ' \
           'VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)'
+
     for index, row in df.iterrows():
         try:
-            val = (row['date'],
-                   [item for item in imp_teams if item[1] == row['home_team']][0][0],
-                   [item for item in imp_teams if item[1] == row['away_team']][0][0],
-                   checkScore(row['home_score']),
-                   checkScore(row['away_score']),
-                   [item for item in imp_tournaments if item[1] == row['tournament']][0][0],
-                   list(filter(lambda x: x[1] == row['city'], imp_cities))[0][0],
-                   [item for item in imp_countries if item[1] == row['country']][0][0],
-                   row['neutral']
-                   )
+            val = (
+                row['date'],
+                safe_lookup(row['home_team'], imp_teams),
+                safe_lookup(row['away_team'], imp_teams),
+                checkScore(row['home_score']),
+                checkScore(row['away_score']),
+                safe_lookup(row['tournament'], imp_tournaments),
+                safe_lookup(row['city'], imp_cities),
+                safe_lookup(row['country'], imp_countries),
+                row['neutral']
+            )
+            if None in val:
+                #print(f"Błąd mapowania wiersza {index}: {row}")
+                continue
+
             cur.execute(sql, val)
             connection.commit()
             progress = ((index + 1) / total_rows) * 100
-            print(f"\rPostęp: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
-        except IndexError as e:
+            print(f"\rPostęp GAME: {progress:.2f}% ({index + 1}/{total_rows} wierszy)", end="")
+        except Exception as e:
             print(f"\nBłąd w wierszu {index}: {e}")
     print("\nDane do tabeli GAME zostały wgrane pomyślnie.")
+
 
 exec()

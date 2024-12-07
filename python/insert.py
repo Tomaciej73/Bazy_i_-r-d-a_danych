@@ -14,12 +14,11 @@ tournaments = df['tournament'].unique()
 
 
 def exec():
-    updateCity()
+    #updateCity()
     #updateCountry()
     #updateTeams()
     #updateTournaments()
-    #updateGames()
-    print("I myk gotowe!")
+    updateGames()
 
 
 # Wstaw dane z csv do CITY
@@ -27,13 +26,13 @@ def updateCity():
     total_rows = len(cities)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.CITY')  # Usuń wszystko z tabeli CITY
-        cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')  # Bez ROLLBACK
+        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')  # Bez ROLLBACK
     except cx_Oracle.IntegrityError as e:
         if "ORA-02292" in str(e):
             print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
             updateGames(delete_only=True)  # Najpierw usuń dane z GAME
             cur.execute('DELETE FROM KARKULOWSKIT.CITY')
-            cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')
+            #cur.execute('TRUNCATE TABLE KARKULOWSKIT.CITY')
     for index, city in enumerate(cities):
         tmp = ""
         acc = """ '",{}[].`;: -' ’‘"""
@@ -50,13 +49,13 @@ def updateCountry():
     total_rows = len(countries)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.COUNTRY')  # Usuń wszystko z tabeli COUNTRY
-        cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')  # Bez ROLLBACK
+        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')  # Bez ROLLBACK
     except cx_Oracle.IntegrityError as e:
         if "ORA-02292" in str(e):
             print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
             updateGames(delete_only=True)  # Najpierw usuń dane z GAME
             cur.execute('DELETE FROM KARKULOWSKIT.COUNTRY')
-            cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')
+            #cur.execute('TRUNCATE TABLE KARKULOWSKIT.COUNTRY')
     for index, country in enumerate(countries):
         cur.execute('INSERT INTO KARKULOWSKIT.COUNTRY(COUNTRY_NAME) VALUES (:1)', [country])
         connection.commit()
@@ -69,13 +68,13 @@ def updateTeams():
     total_rows = len(concat_teams)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.TEAM')  # Usuń wszystko z tabeli TEAM
-        cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')  # Bez ROLLBACK
+        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')  # Bez ROLLBACK
     except cx_Oracle.IntegrityError as e:
         if "ORA-02292" in str(e):
             print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
             updateGames(delete_only=True)  # Najpierw usuń dane z GAME
             cur.execute('DELETE FROM KARKULOWSKIT.TEAM')
-            cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')
+            #cur.execute('TRUNCATE TABLE KARKULOWSKIT.TEAM')
     for index, team in enumerate(concat_teams):
         tmp = ""
         acc = """ '",{}[].`;: - """
@@ -93,13 +92,13 @@ def updateTournaments():
     total_rows = len(tournaments)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.TOURNAMENT')  # Usuń wszystko z tabeli TEAM
-        cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')  # Bez ROLLBACK
+        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')  # Bez ROLLBACK
     except cx_Oracle.IntegrityError as e:
         if "ORA-02292" in str(e):
             print("Znaleziono rekordy podrzędne. Usuwanie danych z GAME...")
             updateGames(delete_only=True)  # Najpierw usuń dane z GAME
             cur.execute('DELETE FROM KARKULOWSKIT.TOURNAMENT')
-            cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')
+            #cur.execute('TRUNCATE TABLE KARKULOWSKIT.TOURNAMENT')
     for index, tournament in enumerate(tournaments):
         cur.execute('INSERT INTO KARKULOWSKIT.TOURNAMENT(TOURNAMENT_NAME) VALUES (:1)', [tournament])
         connection.commit()
@@ -112,7 +111,7 @@ def updateGames(delete_only=False):
     total_rows = len(df)
     try:
         cur.execute('DELETE FROM KARKULOWSKIT.GAME')
-        cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
+        #cur.execute('TRUNCATE TABLE KARKULOWSKIT.GAME')
         if delete_only:
             print("Dane z tabeli GAME zostały usunięte.")
             return

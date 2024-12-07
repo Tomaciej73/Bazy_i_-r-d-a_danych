@@ -2,28 +2,52 @@ import pandas as pd
 from connect import cur
 
 def showCity():
-    cur.execute('SELECT * FROM KARKULOWSKIT.CITY')
-    result = cur.fetchall()
-    df = pd.DataFrame(result, columns=['ID','City Name'])
-    print(df.head(10).to_string(index=False))
+    try:
+        cur.execute('SELECT * FROM KARKULOWSKIT.CITY')
+        result = cur.fetchall()
+        df = pd.DataFrame(result, columns=['ID', 'City Name'])
+        print(df.head(10).to_string(index=False))  # Wyświetla 10 pierwszych wierszy
+        return result
+    except Exception as e:
+        print(f"Błąd pobierania danych z tabeli CITY: {e}")
+        return []
+
 
 def showCountries():
-    cur.execute('SELECT * FROM KARKULOWSKIT.COUNTRY')
-    result = cur.fetchall()
-    df = pd.DataFrame(result, columns=['ID','Country Name'])
-    print(df.head(10).to_string(index=False))
+    try:
+        cur.execute('SELECT * FROM KARKULOWSKIT.COUNTRY')
+        result = cur.fetchall()
+        df = pd.DataFrame(result, columns=['ID', 'Country Name'])
+        print(df.head(10).to_string(index=False))  # Wyświetla 10 pierwszych wierszy
+        return result
+    except Exception as e:
+        print(f"Błąd pobierania danych z tabeli COUNTRY: {e}")
+        return []
+
 
 def showTeams():
-    cur.execute('SELECT * FROM KARKULOWSKIT.TEAM')
-    result = cur.fetchall()
-    df = pd.DataFrame(result, columns=['ID','Team Name'])
-    print(df.head(10).to_string(index=False))
+    try:
+        cur.execute('SELECT * FROM KARKULOWSKIT.TEAM')
+        result = cur.fetchall()
+        df = pd.DataFrame(result, columns=['ID', 'Team Name'])
+        print(df.head(10).to_string(index=False))
+        return result
+    except Exception as e:
+        print(f"Błąd pobierania danych z tabeli TEAM: {e}")
+        return []
+
 
 def showTournament():
-    cur.execute('SELECT * FROM KARKULOWSKIT.TOURNAMENT')
-    result = cur.fetchall()
-    df = pd.DataFrame(result, columns=['ID', 'Tournament Name'])
-    print(df.head(10).to_string(index=False))
+    try:
+        cur.execute('SELECT * FROM KARKULOWSKIT.TOURNAMENT')
+        result = cur.fetchall()
+        df = pd.DataFrame(result, columns=['ID', 'Tournament Name'])
+        print(df.head(10).to_string(index=False))
+        return result  # Zwraca dane jako listę krotek
+    except Exception as e:
+        print(f"Błąd pobierania danych z tabeli TOURNAMENT: {e}")
+        return []
+
 
 def showGames():
     cur.execute('SELECT * FROM KARKULOWSKIT.GAME')
